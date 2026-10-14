@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Picker App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM CDNs -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel Standalone for JSX compilation in browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-[#F5EEF8] m-0 p-0">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        const CATEGORIES = [
+          {
+            id: 'katie',
+            label: 'Katie Kash',
+            accent: '#4FA3D1',
+            cardKey: 'amex',
+            card: 'Amex Blue Cash Everyday',
+            fund: "Katie's personal fund",
+            rate: '1% cash back — no bonus category applies',
+            note: '',
+          },
+          {
+            id: 'jason',
+            label: 'Jason Kash',
+            accent: '#4FA3D1',
+            cardKey: 'amex',
+            card: 'Amex Blue Cash Everyday',
+            fund: "Jason's personal fund",
+            rate: '1% cash back — no bonus category applies',
+            note: '',
+          },
+          {
+            id: 'groceries',
+            label: 'Groceries',
+            accent: '#1F4E79',
+            cardKey: 'amex',
+            card: 'Amex Blue Cash Preferred',
+            fund: 'Groceries, gas & streaming fund',
+            rate: '6% at U.S. supermarkets',
+            note: 'Caps at $6,000 in a year, then drops to 1%.',
+          },
+          {
+            id: 'gas',
+            label: 'Gas',
+            accent: '#1F4E79',
+            cardKey: 'amex',
+            card: 'Amex Blue Cash Preferred',
+            fund: 'Groceries, gas & streaming fund',
+            rate: '3% at gas stations',
+            note: '',
+          },
+          {
+            id: 'streaming',
+            label: 'Streaming',
+            accent: '#1F4E79',
+            cardKey: 'amex',
+            card: 'Amex Blue Cash Preferred',
+            fund: 'Groceries, gas & streaming fund',
+            rate: '6% on select streaming services',
+            note: '',
+          },
+          {
+            id: 'amazon',
+            label: 'Amazon',
+            accent: '#D1567F',
+            cardKey: 'amazon',
+            card: 'Amazon Prime Visa',
+            fund: 'Amazon fund',
+            rate: '5% at Amazon.com & Whole Foods',
+            note: 'Requires an active Prime membership.',
+          },
+          {
+            id: 'dining',
+            label: 'Dining out',
+            accent: '#5847A6',
+            cardKey: 'chase',
+            card: 'Chase Freedom Unlimited',
+            fund: 'Everything-else fund',
+            rate: '3% at restaurants',
+            note: '',
+          },
+          {
+            id: 'travel',
+            label: 'Travel',
+            accent: '#5847A6',
+            cardKey: 'chase',
+            card: 'Chase Freedom Unlimited',
+            fund: 'Everything-else fund',
+            rate: '5% on travel booked through Chase Travel',
+            note: '',
+          },
+          {
+            id: 'other',
+            label: 'Everything else',
+            accent: '#5847A6',
+            cardKey: 'chase',
+            card: 'Chase Freedom Unlimited',
+            fund: 'Everything-else fund',
+            rate: '1.5% flat on anything else',
+            note: '',
+          },
+        ];
+
+        const CARD_LABELS = { macu: 'MACU', amex: 'AMEX', amazon: 'PRIME', chase: 'CHASE' };
+
+        const INK = '#2A1B3D';
+        const PAPER = '#F5EEF8';
+        const PAPER_LIGHT = '#FCF8FD';
+        const INK_SOFT = '#7A6889';
+
+        function CardGlyph({ cardKey }) {
+          switch (cardKey) {
+            case 'macu':
+              return (
+                <React.Fragment>
+                  <path d="M43 21 L48.5 12 L53 18 L56 13 L59 21 Z" fill="rgba(255,255,255,0.55)" />
+                  <path d="M46 21 L51 11 L59 21 Z" fill="rgba(255,255,255,0.9)" />
+                </React.Fragment>
+              );
+            case 'amex':
+              return (
+                <React.Fragment>
+                  <circle cx="51" cy="15" r="7.5" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="1.4" />
+                  <circle cx="51" cy="15" r="3" fill="rgba(255,255,255,0.85)" />
+                </React.Fragment>
+              );
+            case 'amazon':
+              return (
+                <React.Fragment>
+                  <rect x="44" y="9" width="14" height="12" rx="1.5" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="1.4" />
+                  <line x1="44" y1="15" x2="58" y2="15" stroke="rgba(255,255,255,0.9)" strokeWidth="1.3" />
+                  <line x1="51" y1="9" x2="51" y2="21" stroke="rgba(255,255,255,0.9)" strokeWidth="1.1" />
+                </React.Fragment>
+              );
+            case 'chase':
+              return (
+                <path
+                  d="M51 8 L53.3 12.8 L58.5 15 L53.3 17.2 L51 22 L48.7 17.2 L43.5 15 L48.7 12.8 Z"
+                  fill="rgba(255,255,255,0.9)"
+                />
+              );
+            default:
+              return null;
+          }
+        }
+
+        function MiniCard({ cardKey, accent, size = 'sm' }) {
+          const w = size === 'sm' ? 44 : 72;
+          const h = size === 'sm' ? 28 : 45;
+          const gradId = `sheen-${cardKey}-${size}`;
+          return (
+            <svg width={w} height={h} viewBox="0 0 64 40" style={{ flexShrink: 0 }}>
+              <defs>
+                <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stopColor="#fff" stopOpacity="0.2" />
+                  <stop offset="0.55" stopColor="#fff" stopOpacity="0" />
+                  <stop offset="1" stopColor="#000" stopOpacity="0.14" />
+                </linearGradient>
+              </defs>
+              <rect x="0.5" y="0.5" width="63" height="39" rx="4" fill={accent} stroke="rgba(0,0,0,0.12)" />
+              <rect x="0.5" y="0.5" width="63" height="39" rx="4" fill={`url(#${gradId})`} />
+              <rect x="6" y="8" width="13" height="9" rx="2" fill="#EBDBA9" stroke="rgba(0,0,0,0.15)" strokeWidth="0.5" />
+              <line x1="6" y1="11.5" x2="19" y2="11.5" stroke="#C9B67C" strokeWidth="0.6" />
+              <line x1="6" y1="14" x2="19" y2="14" stroke="#C9B67C" strokeWidth="0.6" />
+              <CardGlyph cardKey={cardKey} />
+              <text
+                x="6"
+                y="33"
+                fontSize="8"
+                fontFamily="'Comic Neue', cursive"
+                fontWeight="700"
+                letterSpacing="0.5"
+                fill="rgba(255,255,255,0.92)"
+              >
+                {CARD_LABELS[cardKey]}
+              </text>
+            </svg>
+          );
+        }
+
+        function Chevron({ open, accent }) {
+          return (
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 14 14"
+              fill="none"
+              style={{
+                transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s ease',
+                flexShrink: 0,
+              }}
+            >
+              <path d="M4 2L10 7L4 12" stroke={accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          );
+        }
+
+        function CardPicker() {
+          const [openId, setOpenId] = useState(null);
+
+          return (
+            <div style={{ backgroundColor: PAPER, minHeight: '100vh', fontFamily: "'Comic Neue', cursive", color: INK }}>
+              <div style={{ backgroundColor: INK }} className="px-6 pt-10 pb-8">
+                <div className="max-w-md mx-auto">
+                  <h1 style={{ fontFamily: "'Comic Neue', cursive", color: PAPER, fontWeight: 700 }} className="text-3xl">
+                    Card Finder
+                  </h1>
+                  <p style={{ color: '#CBB6DA' }} className="mt-2 text-sm">
+                    Tap what you're buying to see the card and fund it comes from.
+                  </p>
+                </div>
+              </div>
+
+              <div className="max-w-md mx-auto px-4 pb-16 -mt-4">
+                <div style={{ backgroundColor: PAPER_LIGHT, border: '1px solid #E6D9EE' }} className="rounded-sm overflow-hidden shadow-sm">
+                  {CATEGORIES.map((cat, i) => {
+                    const isOpen = openId === cat.id;
+                    return (
+                      <div key={cat.id} style={{ borderTop: i === 0 ? 'none' : '1px solid #E6D9EE' }}>
+                        <button
+                          onClick={() => setOpenId(isOpen ? null : cat.id)}
+                          className="w-full flex items-center justify-between py-3 pl-4 pr-5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                          style={{
+                            borderLeft: `5px solid ${cat.accent}`,
+                            backgroundColor: isOpen ? '#F1E4F6' : 'transparent',
+                          }}
+                        >
+                          <span className="flex items-center gap-3">
+                            <MiniCard cardKey={cat.cardKey} accent={cat.accent} size="sm" />
+                            <span style={{ fontFamily: "'Comic Neue', cursive", fontWeight: 700 }} className="text-base">
+                              {cat.label}
+                            </span>
+                          </span>
+                          <Chevron open={isOpen} accent={cat.accent} />
+                        </button>
+
+                        {isOpen && (
+                          <div className="px-5 pb-5 pt-1" style={{ borderLeft: `5px solid ${cat.accent}` }}>
+                            <div
+                              style={{ backgroundColor: '#FEFAFF', border: `1px solid ${cat.accent}55`, position: 'relative' }}
+                              className="rounded-sm p-4"
+                            >
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  top: 0,
+                                  right: 0,
+                                  width: 0,
+                                  height: 0,
+                                  borderStyle: 'solid',
+                                  borderWidth: '0 14px 14px 0',
+                                  borderColor: `transparent ${PAPER} transparent transparent`,
+                                }}
+                              />
+                              <div className="flex items-center gap-3 mb-3">
+                                <MiniCard cardKey={cat.cardKey} accent={cat.accent} size="md" />
+                                <div>
+                                  <div style={{ color: INK_SOFT }} className="text-xs mb-0.5">Card</div>
+                                  <div style={{ fontFamily: "'Comic Neue', cursive", color: INK, fontWeight: 700 }} className="text-lg">{cat.card}</div>
+                                </div>
+                              </div>
+                              <div className="mb-3">
+                                <div style={{ color: INK_SOFT }} className="text-xs mb-0.5">Fund</div>
+                                <div style={{ fontFamily: "'Comic Neue', cursive", color: INK }} className="text-base">{cat.fund}</div>
+                              </div>
+                              <div>
+                                <div style={{ color: INK_SOFT }} className="text-xs mb-0.5">Rate</div>
+                                <div className="text-sm" style={{ color: cat.accent, fontFamily: "'Comic Neue', cursive", fontWeight: 700 }}>{cat.rate}</div>
+                                {cat.note && (
+                                  <div style={{ color: INK_SOFT }} className="text-xs mt-1">{cat.note}</div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <p style={{ color: INK_SOFT }} className="text-xs mt-5 px-1">
+                  Rates are simplified for a quick check — full card terms apply.
+                </p>
+              </div>
+            </div>
+          );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<CardPicker />);
+    </script>
+</body>
+</html>
